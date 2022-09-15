@@ -6,7 +6,6 @@ from mfrc522 import MFRC522
 '''
 The state variable keeps track of the current state of the device.
 It is used for checking what the previous state was.
-
 State 0: No Card - Waiting 
 State 1: Card Inserted - Reading
 State 2: Card Inserted - Waiting
@@ -28,15 +27,20 @@ def cardChange(pinNum):
 
 #limit switch on Pin 14 triggers interrupt on rising or falling edge
 limit_switch = Pin(14, Pin.IN, Pin.PULL_DOWN)
-#limit_switch = Pin(14, Pin.IN)
 limit_switch.irq(handler=cardChange, trigger = Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
 outputBit = Pin(15, Pin.OUT)
 outputBit.value(0)
 
+RGB = [Pin(11, Pin.OUT), Pin(12, Pin.OUT), Pin(13, Pin.OUT)]
+
+def RGBOutput(color):
+    for i in range(len(RGB)):
+        RGB[i].value(color[i])
+        
 def read():
     hits = 0
-    for i in range(5):
+    for i in range(6):
         (stat, tag_type) = reader.request(reader.REQIDL)
         if stat == reader.OK:
             (stat, uid) = reader.SelectTagSN()
@@ -48,17 +52,18 @@ def read():
     result = True if (hits >= 3) else False
     
     if result:
+        RGBOutput([0,0,1])
         outputBit.value(1)
-    
+    else:
+        RGBOutput([1,0,0])
     return result
 
 def cleanup():
     print('Clean')
 
 while True:
-    print(time.time() - start)
+    #print(time.time() - start)
     time.sleep(0.05)
-    
     if cardIn:
         if state == 0:
             state = 1
@@ -78,6 +83,7 @@ while True:
             state = 0
             
         if state == 0:
+            RGBOutput([0,1,0])
             print('Nothing')
         
         elif state == 3:
@@ -86,4 +92,3 @@ while True:
             state = 0
         else:
             print("Hmm, idk how you did this.")
-            
