@@ -1,4 +1,5 @@
 from machine import Pin
+import machine
 import micropython
 import time
 from mfrc522 import MFRC522
@@ -15,18 +16,38 @@ State 3: No Card - Cleanup
 state = 0
 cardIn = False
 success = False
-target = 209451056 
+target = 3567068812 
 reader = MFRC522(spi_id=0,sck=2,miso=4,mosi=3,cs=1,rst=0)
 start = time.time()
 reader.init()
-
+limit_switch = Pin(14, Pin.IN, Pin.PULL_DOWN)
+int_avaliable = True
 # when the pin changes, set cardin to true if switch pressed down, false otherwise
-def cardChange(pinNum):
+def changeState():
     global cardIn
     cardIn = True if limit_switch.value() else False
 
+def accident():
+    original = limit_switch.value()
+    time.sleep(10)
+    if (limit_switch.value() == original):
+        changeState()
+    
+def cardChange(pinNum):
+    global int_avaliable
+    if not int_avaliable:
+        return
+    int_avaliable = False
+    limit_switch.irq(handler=None, trigger = 0)
+    print("Card change")
+    time.sleep(.02)
+    accident()
+    print("Almost")
+    limit_switch.irq(handler=cardChange, trigger = Pin.IRQ_RISING | Pin.IRQ_FALLING)
+    print("Over")
+    
+
 #limit switch on Pin 14 triggers interrupt on rising or falling edge
-limit_switch = Pin(14, Pin.IN, Pin.PULL_DOWN)
 limit_switch.irq(handler=cardChange, trigger = Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
 outputBit = Pin(15, Pin.OUT)
@@ -68,10 +89,12 @@ while True:
         if state == 0:
             state = 1
         elif state == 1:
+            print("Reading")
             success = read()
             state = 2
         elif state == 2:
             print('Wait After Read')
+            int_avaliable = True
         else:
             print("This should not happen uh oh.")
             
@@ -83,6 +106,7 @@ while True:
             state = 0
             
         if state == 0:
+            int_avaliable = True
             RGBOutput([0,1,0])
             print('Nothing')
         
