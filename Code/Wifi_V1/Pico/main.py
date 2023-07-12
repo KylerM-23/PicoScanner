@@ -1,4 +1,4 @@
-from machine import Pin
+""" from machine import Pin """
 import micropython
 import time
 from mfrc522 import MFRC522

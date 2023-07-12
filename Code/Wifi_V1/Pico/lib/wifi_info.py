@@ -2,8 +2,8 @@ import time
 import socket
 import network
 
-ssid = "SSID"
-password = 'PASSWORD'
+ssid = "ATT-WIFI-Yr72"
+password = 'iY7r72c7'
 server_ip = '0.0.0.0'
 port = 12345
 server = socket.socket()
