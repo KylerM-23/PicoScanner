@@ -9,9 +9,9 @@ port = 5000
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 class ScannerStatus:
-  def __init__(self, isOn):
-    self.machineID = 12345
-    self.isOn = isOn
+    def __init__(self, isOn):
+        self.machineID = 12345
+        self.isOn = isOn
 
 def wifi_connect():
     global wlan
@@ -38,14 +38,13 @@ def wifi_connect():
         print('Network Connection Failed')
         return False 
         
-def connectSocket(status):
+def connectSocket(machineID = "Test ID"):
     global server
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         ai = socket.getaddrinfo("192.168.56.1", 80) # Address of Web Server
         print(ai)
         server.connect((server_ip, port))
-        return sendStatus(status)
+        return sendToServer(machineID)
         return True
     except:
         print('Failed To Connect to Server: OFFLINE MODE')
@@ -61,10 +60,25 @@ def sendToServer(msg):
     
 def sendStatus(status):
     try:
-        msg = "12345-" + status
+        msg = "125467-" + status
         server.sendall(bytearray(msg, 'utf-8'))
         return True
     except:
         return False
       
 
+if __name__ == "__main__":
+    runTime = time.time()
+    
+    #wifi setup & connection to server
+    #online = wifi_connect()
+    online = connectSocket(machineID = "PC TEST")
+    socket_time = time.time()
+    
+    
+    while True:
+        #print(time.time() - start)
+        time.sleep(0.05)
+        if not online and time.time()-socket_time > 600: #Every 10 Minutes
+            online = connectSocket(machineID = "PC TEST")
+            socket_time=time.time()

@@ -13,7 +13,7 @@ state = READY
 cardIn = False   #bool for the state of the card
 success = False  #bool for the state of card read
 target = 209451056 #ID Number of valid card
-reader = MFRC522(spi_id=0,sck=18,miso=16,mosi=19,cs=20,rst=22)
+reader = MFRC522(spi_id=0,sck=2,miso=4,mosi=3,cs=1,rst=0)
 start = time.time() #debug var
 reader.init()
 online = False
@@ -25,7 +25,7 @@ def cardChange(pinNum):
     print(cardIn)
 
 #limit switch triggers interrupt on rising or falling edge
-limit_switch = Pin(5, Pin.IN, Pin.PULL_UP)
+limit_switch = Pin(27, Pin.IN, Pin.PULL_UP)
 limit_switch.irq(handler=cardChange, trigger = Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
 #outputBit will power on equipment
@@ -33,7 +33,7 @@ outputBit = Pin(28, Pin.OUT)
 outputBit.value(0)
 
 #RGB LED for feedback
-np = neopixel.NeoPixel(machine.Pin(13), 1)
+np = neopixel.NeoPixel(machine.Pin(18), 1)
 RGB = {
     "RED": (255, 0, 0),
     "GREEN": (0, 255, 0),

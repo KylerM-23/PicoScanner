@@ -1,23 +1,31 @@
 import socket             
 import asyncio
+import threading
 import time
 import pickle
 from kasa import Discover, SmartStrip
 
-async def switchSmartPlug(strip, pico):
+async def switchSmartPlug(strip):
     while True:
-        #Waits for data to come from picos
-        data = pico.recv(2048).decode()
-
-        #Decodes message sent by Pico
-        id = data.split("-")[0]
-        state = data.split("-")[1]
-
-        if state == 'True':
-            await strip.children[0].turn_on()
-        elif state == 'False':
-            await strip.children[0].turn_off()
-        await asyncio.sleep(5)
+        try:
+            pico, addr = s.accept()
+            data = pico.recv(2048).decode() #Pico ID
+            #Enters loop where pico data is received
+            #Decodes message sent by Pico
+            id = data.split("-")[0]
+            state = data.split("-")[1]
+            print(data)
+            if state == 'True':
+                await strip.children[0].turn_on()
+            elif state == 'False':
+                await strip.children[0].turn_off()
+            pico.close()
+            print("Connection Closed")
+        except Exception as e:
+            print(e)
+            pico.close()
+            print("Exception")
+    
 
 found_devices = asyncio.run(Discover.discover())
 strip = SmartStrip("192.168.1.61")
@@ -47,19 +55,4 @@ print("Socket:", s.getsockname())
 s.listen(1)
 machineID = ""
 
-while True:
-    try:
-        pico, addr = s.accept()
-        machineID = pico.recv(2048).decode() #Pico ID
-        print("Pico", machineID, "Connected")
-        #Enters loop where pico data is received
-        asyncio.run(switchSmartPlug(strip, pico))
-    except pickle.UnpicklingError as e:
-        print(e)
-    except Exception as e:
-        print(e)
-        pico.close()
-        print("Connection Closed")
-    
-    # Close the connection with the client
-    pico.close() 
+asyncio.run(switchSmartPlug(strip))
